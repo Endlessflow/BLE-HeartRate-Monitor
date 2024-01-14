@@ -30,7 +30,7 @@ class GUI(tk.Tk):
         self.style = ttk.Style(self)
         self.style.configure('TButton', font=('Helvetica', 16), borderwidth=0)
         # Modify the following line to set the background and foreground color correctly
-        self.style.configure('TButton', background=self.primary_color, foreground=self.background_color)
+        self.style.configure('TButton', background=self.primary_color)
 
         # Start button
         self.start_button = ttk.Button(self, text="Start", style='TButton', command=self.start_monitoring)
@@ -66,4 +66,4 @@ class GUI(tk.Tk):
 
         self.configure(bg=self.background_color)  # Example pink background
         self.heart_rate_label.configure(bg=self.background_color)
-        self.style.configure('TButton', background=self.primary_color, foreground=self.background_color)
+        # self.style.configure('TButton', background=self.primary_color, foreground=self.background_color)

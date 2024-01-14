@@ -25,13 +25,14 @@
 
 ##### Attributes:
 - `ble_device_manager`: Instance of `BLEDeviceManager` to use for connecting to the BLE device.
-- `target_zone`: Tuple or range indicating the lower and upper thresholds of the target heart rate zone.
+- `target_bpm`: The currently targeted heart rate zone .
+- `error_margin`: The threshold of tolerence for `target_bpm` (e.g. +/- 5 bpm)
 - `observers`: A list to keep track of registered observer objects.
 - `current_heart_rate`: Stores the latest heart rate reading.
 - `status`: Indicates the current status of the heart rate relative to the target zone.
 
 ##### Methods:
-- `__init__(self, ble_device_manager, target_zone)`: Constructor to initialize with a BLE device manager and target zone.
+- `__init__(self, ble_device_manager, target_bpm, error_margin)`: Constructor to initialize with a BLE device manager and target zone.
 - `start_monitoring(self)`: Start receiving and processing heart rate data.
 - `stop_monitoring(self)`: Stop the heart rate data monitoring.
 - `process_heart_rate(self, data)`: Process the received heart rate data.

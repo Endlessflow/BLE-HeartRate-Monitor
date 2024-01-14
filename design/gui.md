@@ -30,6 +30,7 @@ The `GUI` serves as the primary interface for the user to interact with the appl
 - `initialize_ui(self)`: Sets up the UI elements and initial state.
 - `update_heart_rate_display(self, heart_rate)`: Updates the heart rate display.
 - `update_background_color(self, zone_status)`: Changes the background color based on the heart rate zone.
+- `update(self, heart_rate, status)`: function called by the model that calls the respective function to update the display
 - `start_stop_monitoring(self)`: Starts or stops the heart rate monitoring.
 - `show_error_message(self, message)`: Displays an error message.
 - `on_exit(self)`: Handles the application exit process.

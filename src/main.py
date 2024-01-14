@@ -25,7 +25,8 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
 
     ble_device_address = config.get('ble_device_address', 'default_address')
-    target_zone = config.get('target_zone', {'lower': 0, 'upper': 300})
+    target_bpm = config.get('target_bpm', -1)
+    error_margin = config.get('error_margin', -1)
 
     ble_device_manager = None
     heart_rate_monitor = None
@@ -38,9 +39,9 @@ if __name__ == "__main__":
         print("Please specify the BLE device address in the configuration file.")
         exit()
 
-    if target_zone != {'lower': 0, 'upper': 300}:
-        print(f"Using target zone from configuration file: {target_zone}")
-        heart_rate_monitor = HeartRateMonitor(ble_device_manager, (target_zone['lower'], target_zone['upper']))
+    if target_bpm != -1 and error_margin != -1:
+        print(f"Using target bpm from configuration file: {target_bpm} bpm +/- {error_margin} bpm")
+        heart_rate_monitor = HeartRateMonitor(ble_device_manager, target_bpm, error_margin)
     else:
         print("No target zone specified in configuration file.")
         print("Please specify the target zone in the configuration file.")

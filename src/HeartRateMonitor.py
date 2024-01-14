@@ -1,9 +1,10 @@
 import asyncio
 
 class HeartRateMonitor:
-    def __init__(self, ble_device_manager, target_zone):
+    def __init__(self, ble_device_manager, target_bpm, error_margin):
         self.ble_device_manager = ble_device_manager
-        self.target_zone = target_zone
+        self.target_bpm = target_bpm
+        self.error_margin = error_margin
         self.observers = []
         self.current_heart_rate = None
         self.status = None
@@ -46,7 +47,8 @@ class HeartRateMonitor:
         self.notify_observers()
 
     def in_target_zone(self, heart_rate):
-        lower, upper = self.target_zone
+        lower = self.target_bpm - self.error_margin
+        upper = self.target_bpm + self.error_margin
         if heart_rate < lower:
             return "below"
         elif heart_rate > upper:
