@@ -9,7 +9,17 @@ import os
 def load_configuration(file_path='config.yaml'):
     if os.path.exists(file_path):
         with open(file_path, 'r') as file:
-            return yaml.safe_load(file)
+            config = yaml.safe_load(file)
+            config['hiit'] = {
+                'age': config.get('hiit_age', -1),
+                'min_percentage': config.get('hiit_min_percentage', 60),
+                'max_percentage': config.get('hiit_max_percentage', 90),
+                'high_phase_duration': config.get('hiit_high_phase_duration', 3),  # in minutes
+                'low_phase_duration': config.get('hiit_low_phase_duration', 2),
+                'cycles': config.get('hiit_cycles', 3)
+            }
+            return config
+
     else:
         print(f"Configuration file '{file_path}' does not exist.")
         return None
@@ -27,6 +37,7 @@ if __name__ == "__main__":
     ble_device_address = config.get('ble_device_address', 'default_address')
     target_bpm = config.get('target_bpm', -1)
     error_margin = config.get('error_margin', -1)
+    hiit_config = config.get('hiit', None)
 
     ble_device_manager = None
     heart_rate_monitor = None
@@ -39,11 +50,11 @@ if __name__ == "__main__":
         print("Please specify the BLE device address in the configuration file.")
         exit()
 
-    if target_bpm != -1 and error_margin != -1:
-        print(f"Using target bpm from configuration file: {target_bpm} bpm +/- {error_margin} bpm")
-        heart_rate_monitor = HeartRateMonitor(ble_device_manager, target_bpm, error_margin)
+    if target_bpm != -1 and error_margin != -1 and hiit_config['age'] != -1:
+        print(f"Using target bpm from configuration file: {target_bpm} bpm +/- {error_margin} bpm and age {hiit_config['age']}")
+        heart_rate_monitor = HeartRateMonitor(loop, ble_device_manager, target_bpm, error_margin, hiit_config)
     else:
-        print("No target zone specified in configuration file.")
+        print("No steady state target zone or age specified in configuration file.")
         print("Please specify the target zone in the configuration file.")
         exit()
     

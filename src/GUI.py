@@ -8,42 +8,72 @@ class GUI(tk.Tk):
         super().__init__()
         self.loop = loop
         self.heart_rate_monitor = heart_rate_monitor
-        self.WARNING_COLOR = '#FBCBCB'
-        self.NEUTRAL_COLOR = '#F0F0F0'
-        self.POSITIVE_COLOR = '#CBFBD5'
-        self.primary_color = '#282828'
-        self.background_color = self.NEUTRAL_COLOR
+        
+        # Define a color scheme
+        self.colors = {
+            'warning': '#FBCBCB',
+            'neutral': '#F0F0F0',
+            'positive': '#CBFBD5',
+            'primary': '#282828',
+        }
 
-        # Set the window size and remove the title bar
+        # Set the window size
         self.geometry("800x600")
-        #self.overrideredirect(True)  # This removes the title bar
 
         # Set the background color
-        self.configure(bg=self.background_color)  # Example pink background
+        self.configure(bg=self.colors['neutral'])
+
+        # Use frames to organize the layout
+        self.top_frame = ttk.Frame(self)
+        self.top_frame.pack(side="top", fill="both", expand=True)
+        self.bottom_frame = ttk.Frame(self)
+        self.bottom_frame.pack(side="bottom", fill="x")
 
         # Heart Rate Label
-        self.heart_rate_label = tk.Label(self, text="---", font=("Helvetica", 48),bg=self.background_color, fg=self.primary_color)
-        self.heart_rate_label.place(relx=0.5, rely=0.4, anchor='center')
+        self.heart_rate_label = tk.Label(self.top_frame, text="---", font=("Helvetica", 48), bg=self.colors['neutral'], fg=self.colors['primary'])
+        self.heart_rate_label.pack(side="top", fill="both", expand=True, pady=20)
 
-        # Start/Stop Button
-        # Create a custom style for the buttons with rounded corners
+        # Create and style buttons
         self.style = ttk.Style(self)
         self.style.configure('TButton', font=('Helvetica', 16), borderwidth=0)
-        # Modify the following line to set the background and foreground color correctly
-        self.style.configure('TButton', background=self.primary_color)
 
-        # Start button
-        self.start_button = ttk.Button(self, text="Start", style='TButton', command=self.start_monitoring)
-        self.start_button.place(relx=0.5, rely=0.6, anchor='center', width=150, height=50)
+        # Define a method to update button styling
+        self.update_button_style('neutral')
 
-        # Stop button
-        self.stop_button = ttk.Button(self, text="Stop", style='TButton', command=self.stop_monitoring)
-        self.stop_button.place(relx=0.5, rely=0.7, anchor='center', width=150, height=50)
+        # Define buttons and place them within the bottom frame
+        self.start_button = ttk.Button(self.bottom_frame, text="Start", command=self.start_monitoring)
+        self.start_button.pack(side="left", padx=10, pady=10)
+
+        self.stop_button = ttk.Button(self.bottom_frame, text="Stop", command=self.stop_monitoring)
+        self.stop_button.pack(side="left", padx=10, pady=10)
+
+        self.hiit_start_button = ttk.Button(self.bottom_frame, text="Start HIIT", command=self.start_hiit)
+        self.hiit_start_button.pack(side="left", padx=10, pady=10)
+
+        self.hiit_stop_button = ttk.Button(self.bottom_frame, text="Stop HIIT", command=self.stop_hiit)
+        self.hiit_stop_button.pack(side="left", padx=10, pady=10)
 
         # Exit protocol
         self.protocol("WM_DELETE_WINDOW", self.on_exit)
 
+        # Additional labels for HIIT information
+        self.hiit_phase_label = tk.Label(self.top_frame, text="Phase: ---", font=("Helvetica", 16))
+        self.hiit_phase_label.pack()
+        self.hiit_cycle_count_label = tk.Label(self.top_frame, text="Cycle: ---", font=("Helvetica", 16))
+        self.hiit_cycle_count_label.pack()
+        self.hiit_target_bpm_label = tk.Label(self.top_frame, text="Target BPM: ---", font=("Helvetica", 16))
+        self.hiit_target_bpm_label.pack()
 
+    def update_button_style(self, status):
+        color = self.colors.get(status, self.colors['neutral'])
+        self.style.configure('TButton', background=color, foreground=self.colors['primary'])
+
+    def start_hiit(self):
+        asyncio.run_coroutine_threadsafe(self.heart_rate_monitor.start_hiit_workout(), self.loop)
+
+    def stop_hiit(self):
+        asyncio.run_coroutine_threadsafe(self.heart_rate_monitor.stop_hiit_workout(), self.loop)
+ 
     def start_monitoring(self):
         # Schedule start_monitoring in the asyncio event loop
         asyncio.run_coroutine_threadsafe(self.heart_rate_monitor.start_monitoring(), self.loop)
@@ -57,13 +87,25 @@ class GUI(tk.Tk):
         asyncio.run_coroutine_threadsafe(self.heart_rate_monitor.safe_exit(), self.loop)
         self.destroy()
 
-    def update(self, heart_rate, status):
+    def update(self, heart_rate, status, hiit_active=False, hiit_phase=None, hiit_cycle_count=None, hiit_target_bpm=None):
         self.heart_rate_label["text"] = f"{heart_rate}"
         if status == "within":
-            self.background_color = self.POSITIVE_COLOR
+            self.background_color = self.colors["positive"]
         elif status == "below" or status == "above":
-            self.background_color = self.WARNING_COLOR
+            self.background_color = self.colors["warning"]
 
         self.configure(bg=self.background_color)  # Example pink background
         self.heart_rate_label.configure(bg=self.background_color)
-        # self.style.configure('TButton', background=self.primary_color, foreground=self.background_color)
+
+        # Update the GUI based on HIIT status
+        if hiit_active:
+            if hiit_phase is not None and hiit_target_bpm is not None:
+                self.hiit_phase_label["text"] = f"Phase: {hiit_phase}"
+                self.hiit_cycle_count_label["text"] = f"Cycle: {hiit_cycle_count}"
+                self.hiit_target_bpm_label["text"] = f"Target BPM: {hiit_target_bpm}"
+        else:
+            # Hide or reset the HIIT labels if not in HIIT mode
+            self.hiit_phase_label["text"] = "Phase: ---"
+            self.hiit_target_bpm_label["text"] = "Target BPM: ---"
+
+        self.update_button_style(status)
